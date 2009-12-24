@@ -1,0 +1,339 @@
+===========
+zojax table
+===========
+
+    >>> from datetime import datetime
+    >>> from zope import interface, component
+    >>> from zope.interface.verify import verifyClass, verifyObject
+    >>> from zope.publisher.browser import TestRequest
+    >>> from zojax.table import table, column, interfaces, tests
+
+    >>> verifyClass(interfaces.ITable, table.Table)
+    True
+
+    >>> verifyClass(interfaces.IColumn, column.Column)
+    True
+
+Table
+
+    >>> class IMyTable(interfaces.ITable):
+    ...     pass
+
+    >>> class MyTable(table.Table):
+    ...     interface.implements(IMyTable)
+
+
+Content object
+
+    >>> class MyContent(object):
+    ...     def __init__(self, name, created, public=False):
+    ...         self.name = name
+    ...         self.created = created
+    ...         self.public = public
+
+    >>> content = MyContent('testContent', datetime(2008, 1, 1))
+
+Create table instance
+
+    >>> request = TestRequest()
+
+    >>> table = MyTable(content, request, object())
+    >>> table.columns
+    ()
+
+    >>> print bool(table)
+    False
+
+We need define adapter that provides IDataset 
+
+    >>> table.update()
+    Traceback (most recent call last):
+    ...
+    ComponentLookupError: ...
+
+    >>> dataset = [MyContent('testContent1', datetime(2008, 1, 1)),
+    ...            MyContent('testContent2', datetime(2008, 2, 1), True)]
+
+    >>> def getDataset(context, table):
+    ...     return dataset
+
+    >>> component.provideAdapter(
+    ...     getDataset, (interface.Interface, IMyTable), interfaces.IDataset)
+
+    >>> table.update()
+    >>> table.columns
+    []
+
+    >>> print bool(table)
+    True
+
+Let's create columns
+
+    >>> class NameColumn(column.AttributeColumn):
+    ...     name = 'name'
+    ...     title = 'Name'
+    ...     weight = 10
+    ...     
+    ...     attrName = 'name'
+
+    >>> component.provideAdapter(
+    ...     NameColumn, (MyContent, interface.Interface, IMyTable), name='name')
+
+    >>> class CreatedColumn(column.AttributeColumn):
+    ...     name = 'created'
+    ...     title = 'Created'
+    ...     weight = 10
+    ...     
+    ...     attrName = 'created'
+    ...     
+    ...     def render(self):
+    ...         value = self.query(self.content)
+    ...         return 'Created: %s'%value
+
+    >>> component.provideAdapter(
+    ...     CreatedColumn, (MyContent, interface.Interface, IMyTable), name='created')
+
+	>>> class PublicColumn(column.BoolColumn):
+	...     name = 'public'
+	...     title = 'Public'
+	...     weight = 10
+	...
+	...     attrName = 'public'
+
+    >>> component.provideAdapter(
+    ...     PublicColumn, (MyContent, interface.Interface, IMyTable), name='public')
+
+    >>> table.update()
+
+    >>> table.columns
+    [<zojax.table.TESTS.CreatedColumn...>, <zojax.table.TESTS.NameColumn...>, <zojax.table.TESTS.PublicColumn...>]
+
+
+Render table. we have to provide nameless view for table.
+
+    >>> table.render()
+    Traceback (most recent call last):
+    ...
+    LookupError: Can't find IPagelet for this table.
+
+    >>> from zojax.layout.pagelet import BrowserPagelet
+    >>> from zojax.layout.interfaces import IPagelet
+    >>> from zope.app.pagetemplate import ViewPageTemplateFile
+
+    # small fix for python2.4 tests
+    >>> __file__ = tests.__file__
+
+    >>> class View(BrowserPagelet):
+    ...     template = ViewPageTemplateFile('table.pt')
+
+    >>> component.provideAdapter(
+    ...     View, (IMyTable, interface.Interface, interface.Interface),
+    ...     interfaces.ITableView)
+
+    >>> table.update()
+
+    >>> records = list(table.records())
+    >>> records
+    [<zojax.table.table.Record ...>, <zojax.table.table.Record ...>]
+
+    >>> record = records[0]
+    >>> record[0], record[1], record[2]
+    (<zojax.table.TESTS.CreatedColumn ...>, <zojax.table.TESTS.NameColumn ...>, <zojax.table.TESTS.PublicColumn ...>)
+
+    >>> record.name, record.name.render()
+    (<zojax.table.TESTS.NameColumn ...>, 'testContent1')
+
+    >>> record.created, record.created.render()
+    (<zojax.table.TESTS.CreatedColumn ...>, 'Created: 2008-01-01 00:00:00')
+
+    >>> record.public, record.public.render()
+    (<zojax.table.TESTS.PublicColumn ...>, u'No')
+    
+    >>> print table.render()
+    <div class="z-table-container">
+    <table class="z-table">
+      <thead>
+        <tr>
+          <th>Created</th>
+          <th>Name</th>
+          <th>Public</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="z-table-record odd">
+          <td>Created: 2008-01-01 00:00:00</td>
+          <td>testContent1</td>
+          <td>No</td>
+        </tr>
+        <tr class="z-table-record even">
+          <td>Created: 2008-02-01 00:00:00</td>
+          <td>testContent2</td>
+          <td>Yes</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+
+    >>> CreatedColumn.isAvailable = False
+    >>> table.update()
+    >>> print table.render()
+    <div class="z-table-container">
+    <table class="z-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Public</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="z-table-record odd">
+          <td>testContent1</td>
+          <td>No</td>
+        </tr>
+        <tr class="z-table-record even">
+          <td>testContent2</td>
+          <td>Yes</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+
+    >>> CreatedColumn.isAvailable = True
+
+We can override table column configuration in several ways:
+
+
+1. Table can implement ITableConfiguration interface
+
+    >>> interface.alsoProvides(table, interfaces.ITableConfiguration)
+    >>> MyTable.pageSize = 10
+    >>> MyTable.enabledColumns = ('name',)
+    >>> MyTable.disabledColumns = ()
+
+    >>> table.update()
+    >>> print table.render()
+    <div class="z-table-container">
+      <table class="z-table">
+        <thead>
+          <tr>
+       	    <th>Name</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="z-table-record odd">
+     	     <td>testContent1</td>
+          </tr>
+          <tr class="z-table-record even">
+    	     <td>testContent2</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+2. Define multi adapter for (context, request, table)
+
+    >>> class Config(object):
+    ...     interface.implements(interfaces.ITableConfiguration)
+    ...     pageSize = 10
+    ...     enabledColumns = ('name', 'created')
+    ...     disabledColumns = ()
+    ...     def __init__(self, context, request, table):
+    ...         pass
+
+    >>> component.provideAdapter(
+    ...     Config, (MyContent, interface.Interface, IMyTable))
+
+    >>> table.update()
+    >>> print table.render()
+    <div class="z-table-container">
+    <table class="z-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Created</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="z-table-record odd">
+          <td>testContent1</td>
+          <td>Created: 2008-01-01 00:00:00</td>
+        </tr>
+        <tr class="z-table-record even">
+          <td>testContent2</td>
+          <td>Created: 2008-02-01 00:00:00</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+
+Disabled columns
+
+    >>> Config.disabledColumns = ('name',)
+
+    >>> table.update()
+    >>> print table.render()
+    <div class="z-table-container">
+    <table class="z-table">
+      <thead>
+        <tr>
+          <th>Created</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="z-table-record odd">
+          <td>Created: 2008-01-01 00:00:00</td>
+        </tr>
+        <tr class="z-table-record even">
+          <td>Created: 2008-02-01 00:00:00</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+
+    >>> Config.enabledColumns = ('name',)
+    >>> Config.disabledColumns = ()
+
+    >>> table.update()
+    >>> print table.render()
+    <div class="z-table-container">
+    <table class="z-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="z-table-record odd">
+          <td>testContent1</td>
+        </tr>
+        <tr class="z-table-record even">
+          <td>testContent2</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+
+
+    >>> Config.enabledColumns = ()
+    >>> Config.disabledColumns = ('created', 'public')
+
+    >>> table.update()
+    >>> print table.render()
+    <div class="z-table-container">
+    <table class="z-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="z-table-record odd">
+          <td>testContent1</td>
+        </tr>
+        <tr class="z-table-record even">
+          <td>testContent2</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+
