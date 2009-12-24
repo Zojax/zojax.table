@@ -1,0 +1,12 @@
+<configure
+   xmlns="http://namespaces.zope.org/zope"
+   xmlns:zojax="http://namespaces.zope.org/zojax">
+
+  <!-- styles -->
+  <zojax:resourceinclude
+     name="zojax-table.css"
+     library="zojax"
+     type="stylesheet"
+     file="styles.css" filetype="zrt" />
+
+</configure>

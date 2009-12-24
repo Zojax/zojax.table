@@ -1,0 +1,95 @@
+/* zrt-cssregistry: */
+
+@media all {
+
+  .z-table-container {
+    padding-bottom: 1em;
+  }
+
+  table.z-table {
+    border-collapse: collapse;
+  }
+
+  table.z-table thead {
+    border-bottom: borderWidth borderStyleAnnotations globalBorderColor;
+  }
+
+  table.z-table tr {
+    vertical-align: middle;
+  }
+
+  table.z-table th {
+    font-size: 90%;
+    font-weight: normal;
+    padding: 0.25em 0.5em;
+    text-align: center;
+    color: discreetColor;
+    background: globalBackgroundColor;
+  }
+
+  table.z-table tbody th {
+    font-size: 100%;
+    text-align: left;
+    padding-left: 2em;
+    background: transparent;
+    color: fontColor;
+  }
+
+  table.z-table td {
+    font-size: 95%;
+    padding: 0.3em 1em;
+    vertical-align: middle;
+  }
+
+  table.z-table tbody td {
+    border-bottom: borderWidth dotted globalBorderColor;
+  }
+
+  table.z-table tbody th {
+    border-bottom: borderWidth dotted globalBorderColor;
+  }
+
+  table.z-table tfoot td {
+    border-bottom: none;
+  }
+
+  table.z-table td.z-table-cell-min {
+    padding: 0.3em 0.5em;
+  }
+
+  table.z-table a {
+    text-decoration: none;
+  }
+
+  table.z-table a:hover {
+    text-decoration: underline;
+  }
+
+  table.z-table img {
+    vertical-align: middle;
+  }
+
+  table.z-table td.z-table-min,
+  table.z-table th.z-table-min { 
+    padding: 0;
+  }
+
+  table.z-table tr.z-table-category td {
+    padding-top: 1.25em;
+    font-weight: bold;
+    border-bottom: borderWidth borderStyleAnnotations globalBorderColor;
+  }
+
+  table.z-table tr.align-center td {
+    text-align: center;
+  }
+
+  table.z-table tr.z-table-pages td { 
+    padding: 0;
+  }
+
+  .z-table-emtpy {
+    padding-top: 2em;
+  }
+
+}

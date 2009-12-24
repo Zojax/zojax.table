@@ -1,0 +1,21 @@
+<configure
+   xmlns="http://namespaces.zope.org/zope"
+   xmlns:zojax="http://namespaces.zope.org/zojax">
+
+  <zojax:pageletType
+     name="table.view"
+     interface=".interfaces.ITableView" />
+
+  <!-- default table view -->
+  <zojax:pagelet
+     type="table.view"
+     for=".interfaces.ITable *"
+     template="table.pt" />
+
+  <!-- default column header -->
+  <adapter factory=".header.ColumnHeader" />
+
+  <!-- styles -->
+  <include file="styles.zcml" />
+
+</configure>
