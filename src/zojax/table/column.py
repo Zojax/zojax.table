@@ -11,12 +11,12 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-from zope.i18n import translate
 """
 
 $Id$
 """
 from zope import interface, component
+from zope.i18n import translate
 
 from interfaces import IColumn, _
 
