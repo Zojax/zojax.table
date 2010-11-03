@@ -11,6 +11,7 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
+from zope.i18n import translate
 """
 
 $Id$
@@ -61,7 +62,7 @@ class Column(object):
         if self.template is not None:
             return self.template()
         else:
-            return self.query()
+            return translate(self.query(), context=self.request)
 
 
 class DisabledColumn(Column):
