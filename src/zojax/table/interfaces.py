@@ -141,7 +141,7 @@ class IColumnHeader(IContentProvider):
     column = interface.Attribute('Column')
 
 
-class ITableFooter(IContentProvider):
+class ITableFooter(interface.Interface):
     """ table footer """
 
 

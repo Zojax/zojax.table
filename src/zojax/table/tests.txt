@@ -141,7 +141,7 @@ Render table. we have to provide nameless view for table.
     (<zojax.table.TESTS.CreatedColumn ...>, <zojax.table.TESTS.NameColumn ...>, <zojax.table.TESTS.PublicColumn ...>)
 
     >>> record.name, record.name.render()
-    (<zojax.table.TESTS.NameColumn ...>, 'testContent1')
+    (<zojax.table.TESTS.NameColumn ...>, u'testContent1')
 
     >>> record.created, record.created.render()
     (<zojax.table.TESTS.CreatedColumn ...>, 'Created: 2008-01-01 00:00:00')

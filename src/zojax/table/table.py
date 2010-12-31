@@ -128,7 +128,7 @@ class Table(object):
         self.initColumns()
         self.initColumnHeaders()
         self.footer = queryMultiAdapter(
-            (self.context, self.request, self), ITableFooter)
+            (self, self.context, self.request), ITableFooter)
         if self.footer is not None:
             self.footer.update()
 

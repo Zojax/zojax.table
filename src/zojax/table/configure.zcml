@@ -5,6 +5,10 @@
   <zojax:pageletType
      name="table.view"
      interface=".interfaces.ITableView" />
+     
+  <zojax:pageletType
+     name="table.footer"
+     interface=".interfaces.ITableFooter" />
 
   <!-- default table view -->
   <zojax:pagelet
